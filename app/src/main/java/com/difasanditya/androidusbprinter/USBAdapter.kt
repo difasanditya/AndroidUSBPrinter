@@ -1,4 +1,4 @@
-package com.difasanditya.printapp
+package com.difasanditya.androidusbprinter
 
 import android.app.PendingIntent
 import android.content.Context
@@ -7,7 +7,7 @@ import android.hardware.usb.*
 import android.widget.TextView
 
 class USBAdapter {
-    private val ACTION_USB_PERMISSION = "com.difasanditya.usbprinter.USB_PERMISSION"
+    private val ACTION_USB_PERMISSION = "com.difasanditya.androidusbprinter.USB_PERMISSION"
     private var usbManager: UsbManager? = null
     private var printerInterface: UsbInterface? = null
     private var writeEndpoint: UsbEndpoint? = null

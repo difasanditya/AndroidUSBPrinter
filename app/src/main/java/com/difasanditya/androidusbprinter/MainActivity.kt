@@ -1,4 +1,4 @@
-package com.difasanditya.printapp
+package com.difasanditya.androidusbprinter
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
