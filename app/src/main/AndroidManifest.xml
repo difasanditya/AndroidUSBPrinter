@@ -3,7 +3,6 @@
           package="com.difasanditya.printapp">
 
     <uses-feature android:name="android.hardware.usb.host" />
-    <uses-sdk android:minSdkVersion="12" />
 
     <application
             android:allowBackup="true"
