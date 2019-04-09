@@ -9,11 +9,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val textOutput = findViewById<TextView>(R.id.textOutput)
         val printer = USBAdapter()
         val msg = "This is a message to print"
 
-        val buttonPrint = findViewById<Button>(R.id.Print)
-        buttonPrint.setOnClickListener {
+        findViewById<Button>(R.id.Print).setOnClickListener {
             printer.print(msg)
         }
 
@@ -77,15 +77,12 @@ class MainActivity : AppCompatActivity() {
         Class Specific Requests
          */
 
-        val textDeviceID = findViewById<TextView>(R.id.textDeviceID)
-
         findViewById<Button>(R.id.getDeviceID).setOnClickListener {
-            printer.getDeviceID(textDeviceID)
+            textOutput.text = printer.getDeviceID()
         }
 
-        val textPortStatus = findViewById<TextView>(R.id.textPortStatus)
         findViewById<Button>(R.id.getPortStatus).setOnClickListener {
-            printer.getPortStatus(textPortStatus)
+            textOutput.text = "${printer.getPortStatus()}"
         }
 
         findViewById<Button>(R.id.softReset).setOnClickListener {

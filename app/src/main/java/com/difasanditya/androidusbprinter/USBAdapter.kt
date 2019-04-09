@@ -4,7 +4,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.hardware.usb.*
-import android.widget.TextView
 
 class USBAdapter {
     private val ACTION_USB_PERMISSION = "com.difasanditya.androidusbprinter.USB_PERMISSION"
@@ -57,21 +56,30 @@ class USBAdapter {
      */
 
     /*
-    Print text from a String
+    Eject paper/document after end of all print
      */
-    fun print(text: String) {
+    private fun createPrintableData(text: String): ByteArray {
+        return text.toByteArray().plus(byteArrayOf(0xFF.toByte())).plus(byteArrayOf(0x0C))
+    }
+
+    /*
+    Print text from ByteArray
+     */
+    fun print(arr: ByteArray) {
         if (printer == null) return
         usbManager!!.openDevice(printer)?.apply {
             claimInterface(printerInterface, forceClaim)
-            bulkTransfer(writeEndpoint, text.toByteArray(), text.toByteArray().size, 60000)
+            bulkTransfer(writeEndpoint, arr, arr.size, 60000)
             releaseInterface(printerInterface)
         }
     }
 
     /*
-    TODO: Implement the function
+    Print text from a String
      */
-    fun print(arr: ByteArray) {}
+    fun print(text: String) {
+        print(createPrintableData(text))
+    }
 
     /*
     Standard Device Requests
@@ -131,34 +139,50 @@ class USBAdapter {
     Class Specific Requests
      */
 
-    fun getDeviceID(textView: TextView) {
-        if (printer == null) return
-        usbManager!!.openDevice(printer)?.apply {
-            claimInterface(printerInterface, forceClaim)
-            val buffer = ByteArray(255)
-            val len = controlTransfer(0xA1, 0, 0, 0, buffer, 0xFF, 0)
-            var str = "Device ID:"
-            String(buffer, 2, len - 2).split(";").map {
-                str = str.plus("\n" + it)
-            }
-            textView.text = str
-            releaseInterface(printerInterface)
-        }
-    }
+    /*
+    GET_DEVICE_ID
 
-    fun getPortStatus(textView: TextView) {
-        if (printer == null) return
+     */
+    fun getDeviceID(): String {
+        if (printer == null) return ""
+        val buffer = ByteArray(255)
+        var len = 0
         usbManager!!.openDevice(printer)?.apply {
             claimInterface(printerInterface, forceClaim)
-            val buffer = ByteArray(255)
-            controlTransfer(0xA1, 1, 0, 0, buffer, 1, 0)
-            var str = "Port Status: " + String(buffer) + "\n"
-            textView.text = str
+            len = controlTransfer(0xA1, 0, 0, 0, buffer, 0xFF, 0)
             releaseInterface(printerInterface)
         }
+        return String(buffer, 2, len - 2)
     }
 
     /*
+    GET_PORT_STATUS
+    Possible return value:
+    -1 - Printer is not connected
+     0 - Error, Not Selected, Paper Not Empty
+     8 - No Error, Not Selected, Paper Not Empty
+    16 - Error, Selected, Paper Not Empty
+    24 - No Error, Selected, Paper Not Empty
+    32 - Error, Not Selected, Paper Empty
+    40 - No Error, Not Selected, Paper Empty
+    48 - Error, Selected, Paper Empty
+    56 - No Error, Selected, Paper Empty
+    References:
+    https://www.usb.org/sites/default/files/usbprint11a021811.pdf (4.2.2 GET_PORT_STATUS, Page 7)
+     */
+    fun getPortStatus(): Int {
+        if (printer == null) return -1
+        val buffer = ByteArray(1)
+        usbManager!!.openDevice(printer)?.apply {
+            claimInterface(printerInterface, forceClaim)
+            controlTransfer(0xA1, 1, 0, 0, buffer, 1, 0)
+            releaseInterface(printerInterface)
+        }
+        return buffer[0].toInt()
+    }
+
+    /*
+    SOFT_RESET
     References:
     https://www.usb.org/sites/default/files/usbprint11a021811.pdf (Class-Specific Requests, Page 6)
     http://sdphca.ucsd.edu/lab_equip_manuals/usb_20.pdf (Chapter 9: USB Device Framework, Page 239)
